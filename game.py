@@ -103,6 +103,9 @@ class Game:
         self.word = self._choose_word()
         self.guesses = [None] * len(self.word)
         self.lives = 6
+        self.guess = ''
+        self.user_guess_text =self.font.render(self.guess,True,BLACK)
+
 
 
     
@@ -120,10 +123,11 @@ class Game:
         length = 25
         for i,guess in enumerate(self.guesses):
             if not guess:
-                pygame.draw.line(screen,BLACK,(left_x + i * (length + gap),y),(left_x + i * (length + gap) + length,y),self.line_thickness)
+                pygame.draw.line(screen,BLACK,(left_x + gap +  i * (length + gap),y),(left_x + gap + i * (length + gap) + length,y),self.line_thickness)
 
 
         screen.blit(self.guess_text,(left_x - self.guess_text.get_width() - 5,y + 250))
+        screen.blit(self.user_guess_text,(left_x + 20,y + 250))
 
 
 
@@ -139,6 +143,19 @@ class Game:
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
+                if event.type == pygame.KEYDOWN:
+                    if not self.guess and pygame.K_a <= event.key <= pygame.K_z:
+                        self.guess += chr(event.key)
+                        self.user_guess_text = self.font.render(self.guess,True,BLACK)
+                    elif event.key == pygame.K_BACKSPACE:
+                        self.guess = ''
+                        self.user_guess_text = self.font.render(self.guess,True,BLACK)
+
+
+
+
+
+
 
 
         
