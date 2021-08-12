@@ -105,6 +105,7 @@ class Game:
         self.lives = 6
         self.guess = ''
         self.user_guess_text =self.font.render(self.guess,True,BLACK)
+        self.letters_used = {}
 
 
 
@@ -122,12 +123,35 @@ class Game:
         gap = 20
         length = 25
         for i,guess in enumerate(self.guesses):
-            if not guess:
-                pygame.draw.line(screen,BLACK,(left_x + gap +  i * (length + gap),y),(left_x + gap + i * (length + gap) + length,y),self.line_thickness)
+            pygame.draw.line(screen,BLACK,(left_x + gap +  i * (length + gap),y),(left_x + gap + i * (length + gap) + length,y),self.line_thickness)
+            if guess:
+                screen.blit(guess,(left_x + gap + i * (length + gap) + length//2 -  guess.get_width()//2,y - guess.get_height()))
+
 
 
         screen.blit(self.guess_text,(left_x - self.guess_text.get_width() - 5,y + 250))
         screen.blit(self.user_guess_text,(left_x + 20,y + 250))
+
+    
+    def _check_guess(self):
+
+        found = False
+        for i,c in enumerate(self.word):
+            if c == self.guess:
+                self.guesses[i] = self.font.render(c,True,BLACK)
+                found = True
+        
+
+        self.letters_used.add(self.guess)
+
+        if not found:
+            self.lives -= 1
+
+
+        
+        self.guess= ''
+        self.user_guess_text = self.font.render(self.guess,True,BLACK)
+
 
 
 
@@ -136,7 +160,6 @@ class Game:
 
         
         self._setup()
-        word = self._choose_word()
 
         while True:
             for event in pygame.event.get():
@@ -150,6 +173,11 @@ class Game:
                     elif event.key == pygame.K_BACKSPACE:
                         self.guess = ''
                         self.user_guess_text = self.font.render(self.guess,True,BLACK)
+                    elif self.guess and event.key == pygame.K_RETURN:
+                        self._check_guess()
+                        
+
+
 
 
 
