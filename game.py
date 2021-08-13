@@ -1,4 +1,5 @@
 import pygame
+import time
 pygame.init()
 import sys
 import pandas as pd
@@ -14,6 +15,7 @@ pygame.display.set_caption("HANGMAN")
 clock = pygame.time.Clock()
 WHITE = (255,) * 3
 BLACK = (0,) * 3
+RED = (255,0,0)
 
 
 class Menu:
@@ -54,6 +56,11 @@ class Game:
 
         self.word_text = self.font.render("WORD:",True,BLACK)
         self.guess_text = self.font.render("GUESS:",True,BLACK)
+        self.font.set_underline(True)
+        self.letters_guessed_text = self.font.render("LETTERS GUESSED",True,BLACK)
+        self.letter_used_start = None
+        self.font.set_underline(False)
+        self.letter_already_used_text = self.font.render("LETTER ALREADY GUESSED",True,RED)
         
         
         self._play()
@@ -105,7 +112,8 @@ class Game:
         self.lives = 6
         self.guess = ''
         self.user_guess_text =self.font.render(self.guess,True,BLACK)
-        self.letters_used = {}
+        self.letters_used = []
+        self.letters_used_text = None
 
 
 
@@ -131,10 +139,27 @@ class Game:
 
         screen.blit(self.guess_text,(left_x - self.guess_text.get_width() - 5,y + 250))
         screen.blit(self.user_guess_text,(left_x + 20,y + 250))
+        screen.blit(self.letters_guessed_text,(left_x,y + 50))
+
+        
+        if self.letters_used_text:
+            screen.blit(self.letters_used_text,(left_x,y + 100))
+
+        if self.letter_used_start:
+            screen.blit(self.letter_already_used_text,(left_x,y + 350))
+
+
+
 
     
     def _check_guess(self):
-
+        
+        if self.letter_used_start:
+            self.letter_used_start = None
+        
+        if self.guess in self.letters_used:
+            self.letter_used_start = time.time()
+            return
         found = False
         for i,c in enumerate(self.word):
             if c == self.guess:
@@ -142,15 +167,15 @@ class Game:
                 found = True
         
 
-        self.letters_used.add(self.guess)
+        self.letters_used.append(self.guess)
+        self.letters_used_text = self.font.render(','.join(self.letters_used),True,BLACK)
 
         if not found:
             self.lives -= 1
+        
 
 
         
-        self.guess= ''
-        self.user_guess_text = self.font.render(self.guess,True,BLACK)
 
 
 
@@ -160,6 +185,7 @@ class Game:
 
         
         self._setup()
+        
 
         while True:
             for event in pygame.event.get():
@@ -175,8 +201,16 @@ class Game:
                         self.user_guess_text = self.font.render(self.guess,True,BLACK)
                     elif self.guess and event.key == pygame.K_RETURN:
                         self._check_guess()
+                        self.guess= ''
+                        self.user_guess_text = self.font.render(self.guess,True,BLACK)
                         
 
+        
+
+            if self.letter_used_start:
+                current_time = time.time()
+                if current_time - self.letter_used_start >= 2:
+                    self.letter_used_start = None
 
 
 
