@@ -16,6 +16,7 @@ clock = pygame.time.Clock()
 WHITE = (255,) * 3
 BLACK = (0,) * 3
 RED = (255,0,0)
+GREEN = (0,255,0)
 
 
 class Menu:
@@ -61,6 +62,8 @@ class Game:
         self.letter_used_start = None
         self.font.set_underline(False)
         self.letter_already_used_text = self.font.render("LETTER ALREADY GUESSED",True,RED)
+        self.you_win_text = self.font.render("YOU GUESSED IT!",True,GREEN)
+        self.game_over = False
         
         
         self._play()
@@ -146,9 +149,9 @@ class Game:
             screen.blit(self.letters_used_text,(left_x,y + 100))
 
         if self.letter_used_start:
-            screen.blit(self.letter_already_used_text,(left_x,y + 350))
-
-
+            screen.blit(self.letter_already_used_text,(SCREEN_WIDTH//2 - self.letter_already_used_text.get_width()//2,y + 350))
+        elif self.game_over:
+            screen.blit(self.game_over_text,(SCREEN_WIDTH//2 - self.game_over_text.get_width()//2,y + 350))
 
 
     
@@ -167,13 +170,34 @@ class Game:
                 found = True
         
 
+
         self.letters_used.append(self.guess)
         self.letters_used_text = self.font.render(','.join(self.letters_used),True,BLACK)
+        
 
         if not found:
             self.lives -= 1
+            if self.lives == 0:
+                self._show_missed_guesses()
+                self.game_over_start_time = time.time()
+                self.game_over_text = self.font.render(f"Sorry! The word was {self.word}",True,RED)
+                self.game_over = True
+        elif None not in self.guesses:
+                self.game_over_start_time = time.time()
+                self.game_over_text = self.you_win_text
+                self.game_over = True
         
+                
 
+
+        
+    def _show_missed_guesses(self):
+
+
+
+        for i,c in enumerate(self.guesses):
+            if c is None:
+                self.guesses[i] = self.font.render(self.word[i],True,RED)
 
         
 
@@ -224,6 +248,7 @@ class Game:
             screen.fill(WHITE)
             self._draw_hangman()
             self._draw_guesses()
+            
 
             pygame.display.update()
 
