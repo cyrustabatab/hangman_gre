@@ -19,6 +19,42 @@ RED = (255,0,0)
 GREEN = (0,255,0)
 
 
+class Button(pygame.sprite.Sprite):
+
+
+    def __init__(self,text,x,y,button_color,text_color,font,button_width=None,button_height=None,centered_x=False):
+        super().__init__()
+
+        text = font.render(text,True,text_color)
+        
+        if button_width is None:
+            button_width = text.get_width()
+        if button_height is None:
+            button_height = text.get_height()
+
+        if centered_x:
+            x = SCREEN_WIDTH//2 - button_width//2
+
+
+        self.image = pygame.Surface((button_width,button_height))
+        self.image.fill(button_color)
+
+        self.image.blit(text,(self.image.get_width()//2 - text.get_width()//2,self.image.get_height()//2 - text.get_height()//2))
+
+
+        self.rect = self.image.get_rect(topleft=(x,y))
+
+
+    def clicked_on(self,point):
+        return self.rect.collidepoint(point)
+
+
+
+
+
+
+
+
 class Menu:
 
 
@@ -53,7 +89,8 @@ class Game:
     font = pygame.font.SysFont("calibri",40,bold=True)
     def __init__(self,words="words.csv"):
         
-        self.words = pd.read_csv(words,index_col=0).index
+        self.definitions = pd.read_csv(words,index_col=0)
+        self.words = self.definitions.index
 
         self.word_text = self.font.render("WORD:",True,BLACK)
         self.guess_text = self.font.render("GUESS:",True,BLACK)
@@ -63,6 +100,7 @@ class Game:
         self.font.set_underline(False)
         self.letter_already_used_text = self.font.render("LETTER ALREADY GUESSED",True,RED)
         self.you_win_text = self.font.render("YOU GUESSED IT!",True,GREEN)
+        self.hint_button = pygame.sprite.GroupSingle(Button("HINT",None,250,BLACK,WHITE,self.font,centered_x=True))
         self.game_over = False
         
         
@@ -112,6 +150,8 @@ class Game:
 
         self.word = self._choose_word()
         self.guesses = [None] * len(self.word)
+        self.definition_text = self.font.render(self.definitions.loc[self.word,'definition'],True,BLACK)
+        self.show_definition = False
         self.lives = 6
         self.guess = ''
         self.user_guess_text =self.font.render(self.guess,True,BLACK)
@@ -143,6 +183,12 @@ class Game:
         screen.blit(self.guess_text,(left_x - self.guess_text.get_width() - 5,y + 250))
         screen.blit(self.user_guess_text,(left_x + 20,y + 250))
         screen.blit(self.letters_guessed_text,(left_x,y + 50))
+        
+        if not self.game_over and self.lives <= 3:
+            self.hint_button.draw(screen)
+        
+        if self.show_definition:
+            screen.blit(self.definition_text,(SCREEN_WIDTH//2 - self.definition_text.get_width()//2,y + 350))
 
         
         if self.letters_used_text:
@@ -227,8 +273,18 @@ class Game:
                         self._check_guess()
                         self.guess= ''
                         self.user_guess_text = self.font.render(self.guess,True,BLACK)
-                        
 
+
+
+            
+
+            if self.lives <= 3:
+                point = pygame.mouse.get_pos()
+
+                if self.hint_button.sprite.clicked_on(point):
+                    self.show_definition = True
+                else:
+                    self.show_definition = False
         
 
             if self.letter_used_start:
