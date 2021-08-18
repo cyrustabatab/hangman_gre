@@ -101,7 +101,7 @@ class Game:
         self.letter_already_used_text = self.font.render("LETTER ALREADY GUESSED",True,RED)
         self.you_win_text = self.font.render("YOU GUESSED IT!",True,GREEN)
         self.hint_button = pygame.sprite.GroupSingle(Button("HINT",None,250,BLACK,WHITE,self.font,centered_x=True))
-        self.game_over = False
+        self.score_text = self.font.render("0",True,BLACK)
         
         
         self._play()
@@ -154,9 +154,11 @@ class Game:
         self.show_definition = False
         self.lives = 6
         self.guess = ''
+        self.game_over = False
         self.user_guess_text =self.font.render(self.guess,True,BLACK)
         self.letters_used = []
         self.letters_used_text = None
+        self.score = 0
 
 
 
@@ -199,6 +201,8 @@ class Game:
         elif self.game_over:
             screen.blit(self.game_over_text,(SCREEN_WIDTH//2 - self.game_over_text.get_width()//2,y + 350))
 
+        screen.blit(self.score_text,(SCREEN_WIDTH - self.score_text.get_width(),2))
+
 
     
     def _check_guess(self):
@@ -228,10 +232,14 @@ class Game:
                 self.game_over_start_time = time.time()
                 self.game_over_text = self.font.render(f"Sorry! The word was {self.word}",True,RED)
                 self.game_over = True
+                self.show_definition = False
         elif None not in self.guesses:
                 self.game_over_start_time = time.time()
                 self.game_over_text = self.you_win_text
+                self.score += 1
+                self.score_text = self.font.render(f"{self.score}",True,BLACK)
                 self.game_over = True
+                self.show_definition = False
         
                 
 
@@ -263,22 +271,26 @@ class Game:
                     pygame.quit()
                     sys.exit()
                 if event.type == pygame.KEYDOWN:
-                    if not self.guess and pygame.K_a <= event.key <= pygame.K_z:
-                        self.guess += chr(event.key)
-                        self.user_guess_text = self.font.render(self.guess,True,BLACK)
-                    elif event.key == pygame.K_BACKSPACE:
-                        self.guess = ''
-                        self.user_guess_text = self.font.render(self.guess,True,BLACK)
-                    elif self.guess and event.key == pygame.K_RETURN:
-                        self._check_guess()
-                        self.guess= ''
-                        self.user_guess_text = self.font.render(self.guess,True,BLACK)
+                    if not self.game_over:
+                        if not self.guess and pygame.K_a <= event.key <= pygame.K_z:
+                            self.guess += chr(event.key)
+                            self.user_guess_text = self.font.render(self.guess,True,BLACK)
+                        elif event.key == pygame.K_BACKSPACE:
+                            self.guess = ''
+                            self.user_guess_text = self.font.render(self.guess,True,BLACK)
+                        elif self.guess and event.key == pygame.K_RETURN:
+                            self._check_guess()
+                            self.guess= ''
+                            self.user_guess_text = self.font.render(self.guess,True,BLACK)
+                    elif event.key == pygame.K_RETURN:
+                        self._setup()
+
 
 
 
             
 
-            if self.lives <= 3:
+            if not self.game_over and self.lives <= 3:
                 point = pygame.mouse.get_pos()
 
                 if self.hint_button.sprite.clicked_on(point):
