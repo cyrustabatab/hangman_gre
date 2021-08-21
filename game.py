@@ -7,6 +7,12 @@ import random
 import math
 
 
+# refactor code to use inheritance
+# solidy web scraping
+# menu
+
+
+
 SCREEN_WIDTH =1200 
 SCREEN_HEIGHT = 600
 screen = pygame.display.set_mode((SCREEN_WIDTH,SCREEN_HEIGHT))
