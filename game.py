@@ -63,11 +63,34 @@ class Button(pygame.sprite.Sprite):
 
 class Menu:
 
-
+    font = pygame.font.SysFont("calibri",100)
     def __init__(self):
+        
 
+        self._create_buttons_and_heading()
         self._start()
+    
 
+    def _create_buttons_and_heading(self):
+
+
+        self.header = self.font.render("HANGMAN",True,BLACK)
+        self.header_rect = self.header.get_rect(center=(SCREEN_WIDTH//2,5 + self.header.get_height()//2))
+
+        gap = 75
+        y= self.header_rect.bottom + gap
+        classic_button = Button("CLASSIC",None,y,RED,BLACK,self.font,centered_x=True)
+        y =   classic_button.rect.bottom + gap
+        jumble_button = Button("JUMBLE",None,y,RED,BLACK,self.font,centered_x=True)
+        self.buttons = pygame.sprite.Group(classic_button,jumble_button)
+
+    
+
+    def _draw(self):
+
+        
+        screen.blit(self.header,self.header_rect)
+        self.buttons.draw(screen)
 
     def _start(self):
 
@@ -85,9 +108,23 @@ class Menu:
                         Game(jumble_mode=False)
                     elif event.key == pygame.K_2:
                         Game(jumble_mode=True)
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    point = pygame.mouse.get_pos()
+
+                    for i,button in enumerate(self.buttons):
+                        if button.clicked_on(point):
+                            if i == 0:
+                                jumble_mode = False
+                            else:
+                                jumble_mode = True
+
+                            Game(jumble_mode=jumble_mode)
+                            break
 
             
             screen.fill(WHITE)
+
+            self._draw()
             pygame.display.update()
 
 
